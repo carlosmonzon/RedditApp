@@ -24,6 +24,10 @@ Generate Jacoco coverage reports. Both unit and espresso tests.
 ```sh
 ./gradlew jacocoTestReport
 ```
+After executing the command line, the code coverge report can be found in this path:
+```
+/build/reports/jacoco/jacocoTestReport/html/index.html
+```
 ### Designing the app using MVP
 
 The app consist of one UI Screen:
