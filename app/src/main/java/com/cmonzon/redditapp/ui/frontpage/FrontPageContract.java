@@ -19,8 +19,6 @@ public interface FrontPageContract {
 
         void showLoadingError();
 
-        void showRedditDetils(RedditPost post);
-
         void showNoDataFound();
     }
 

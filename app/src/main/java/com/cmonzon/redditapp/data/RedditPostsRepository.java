@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import io.reactivex.Single;
-import io.reactivex.functions.Consumer;
 
 /**
  * @author cmonzon
@@ -39,11 +38,13 @@ public class RedditPostsRepository implements RedditPostsDataSource {
 
     @Override
     public Single<RedditFrontPage> getRedditFrontPage() {
-        //respond with cache data if it isn't dirty
+        //respond with cache data immediately if it isn't dirty
         if (cachedRedditFrontPage != null && !cacheIsDirty) {
             return Single.just(cachedRedditFrontPage);
         } else {
+            //request RedditFrontPage from remote data source
             return remoteDataSource.getRedditFrontPage().doOnSuccess(frontPage -> {
+                //save front page to cache
                 cachedRedditFrontPage = frontPage;
                 cacheIsDirty = false;
             });

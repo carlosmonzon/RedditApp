@@ -7,14 +7,10 @@ import com.google.gson.annotations.SerializedName;
  */
 public class RedditPostData {
 
-    @SerializedName("subreddit_id")
-    private String subRedditId;
 
     @SerializedName("subreddit")
     private String subReddit;
 
-    @SerializedName("subreddit_name_prefixed")
-    private String subRedditPrefixed;
 
     @SerializedName("ups")
     private int votes;
@@ -25,17 +21,10 @@ public class RedditPostData {
 
     private String title;
 
-    private String url;
+    @SerializedName("permalink")
+    private String postUrlPath;
 
     private Preview preview;
-
-    public String getSubRedditId() {
-        return subRedditId;
-    }
-
-    public void setSubRedditId(String subRedditId) {
-        this.subRedditId = subRedditId;
-    }
 
     public String getSubReddit() {
         return subReddit;
@@ -43,14 +32,6 @@ public class RedditPostData {
 
     public void setSubReddit(String subReddit) {
         this.subReddit = subReddit;
-    }
-
-    public String getSubRedditPrefixed() {
-        return subRedditPrefixed;
-    }
-
-    public void setSubRedditPrefixed(String subRedditPrefixed) {
-        this.subRedditPrefixed = subRedditPrefixed;
     }
 
     public int getVotes() {
@@ -85,19 +66,19 @@ public class RedditPostData {
         this.title = title;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public Preview getPreview() {
         return preview;
     }
 
     public void setPreview(Preview preview) {
         this.preview = preview;
+    }
+
+    public String getPostUrlPath() {
+        return postUrlPath;
+    }
+
+    public void setPostUrlPath(String postUrlPath) {
+        this.postUrlPath = postUrlPath;
     }
 }

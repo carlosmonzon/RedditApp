@@ -74,9 +74,7 @@ public class RedditPostsRepositoryTest {
         repository.refreshFrontPage();
         repository.getRedditFrontPage().test();
         verify(remoteDataSource, times(2)).getRedditFrontPage();
-
     }
-
 
     private void setFrontPageAvailableFromRemote() {
         when(remoteDataSource.getRedditFrontPage()).thenReturn(Single.just(mockRedditFrontPage));

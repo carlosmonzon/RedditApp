@@ -1,6 +1,6 @@
 package com.cmonzon.redditapp.network;
 
-import com.cmonzon.redditapp.BuildConfig;
+import com.cmonzon.redditapp.IdlingResources;
 
 import java.util.concurrent.TimeUnit;
 
@@ -15,13 +15,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class RedditService {
 
-    private static final String API_URL = " https://www.reddit.com/";
+    public static final String API_URL = "https://www.reddit.com";
 
     private static final long CONNECT_TIMEOUT_SECS = 15;
 
     private static final long READ_TIMEOUT_SECS = 15;
 
-    private RedditApi recipesApi;
+    private RedditApi redditApi;
 
     public RedditService() {
 
@@ -35,10 +35,7 @@ public class RedditService {
                 .addInterceptor(interceptor)
                 .build();
 
-        if (BuildConfig.DEBUG) {
-//            IdlingResources.registerOkHttp(client);
-        }
-
+        IdlingResources.registerOkHttp(client);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(API_URL)
@@ -47,10 +44,10 @@ public class RedditService {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
 
-        recipesApi = retrofit.create(RedditApi.class);
+        redditApi = retrofit.create(RedditApi.class);
     }
 
     public RedditApi getRedditApi() {
-        return recipesApi;
+        return redditApi;
     }
 }

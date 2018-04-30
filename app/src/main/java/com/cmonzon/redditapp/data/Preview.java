@@ -7,16 +7,16 @@ import java.util.List;
  */
 public class Preview {
 
-    private List<PreviewImage> previewImages;
+    private List<PreviewImage> images;
 
     private boolean enabled;
 
-    public List<PreviewImage> getPreviewImages() {
-        return previewImages;
+    public List<PreviewImage> getImages() {
+        return images;
     }
 
-    public void setPreviewImages(List<PreviewImage> previewImages) {
-        this.previewImages = previewImages;
+    public void setImages(List<PreviewImage> images) {
+        this.images = images;
     }
 
     public boolean isEnabled() {

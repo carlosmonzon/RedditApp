@@ -11,7 +11,7 @@ import retrofit2.http.GET;
  */
 public interface RedditApi {
 
-    @GET(".json")
+    @GET(".json?raw_json=1")
     Single<RedditFrontPage> getRedditFrontPage();
 
 }

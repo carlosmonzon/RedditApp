@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 /**
  * @author cmonzon
  */
-
 public class RedditPostRemoteDataSourceTest {
 
     @Mock
@@ -44,14 +43,20 @@ public class RedditPostRemoteDataSourceTest {
 
     @Test
     public void test_getRedditFrontPage() {
+        //Given Mock data
         setUpStubbing();
+        //When getRedditFrontPage is called
         TestObserver<RedditFrontPage> observer = repository.getRedditFrontPage().test();
+        //trigger pending actions
         testScheduler.triggerActions();
+
+        //then response is complete
         observer.assertNoErrors();
         observer.assertComplete();
         observer.assertValueCount(1);
     }
 
+    //set up mock data
     private void setUpStubbing() {
         RedditFrontPage frontPage = new RedditFrontPage();
         RedditData data = new RedditData();

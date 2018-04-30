@@ -1,4 +1,13 @@
 apply plugin: 'com.android.application'
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = '0.8.0'
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
 
 android {
     compileSdkVersion 27
@@ -15,10 +24,21 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled true
+        }
     }
     compileOptions {
         targetCompatibility 1.8
         sourceCompatibility 1.8
+    }
+    dataBinding {
+        enabled = true
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 }
 
@@ -36,31 +56,55 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:' + rootProject.retrofitVersion
     implementation 'com.squareup.retrofit2:converter-gson:' + rootProject.gsonConverterVersion
     implementation 'com.squareup.retrofit2:adapter-rxjava2:' + rootProject.rxJavaAdapter
-    implementation 'com.squareup.okhttp3:logging-interceptor:'+ rootProject.okhttpVersion
+    implementation 'com.squareup.okhttp3:logging-interceptor:' + rootProject.okhttpVersion
+    implementation 'com.jakewharton.picasso:picasso2-okhttp3-downloader:' + rootProject.okhttpDownloaderVersion
 
     // Testing-only dependencies
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     testImplementation "org.mockito:mockito-all:$rootProject.ext.mockitoVersion"
     testImplementation "org.hamcrest:hamcrest-all:$rootProject.ext.hamcrestVersion"
 
-    androidTestImplementation ('com.android.support.test.espresso:espresso-core:3.0.2') {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.2') {
         exclude module: 'support-annotations'
     }
-    androidTestImplementation ('com.android.support.test.espresso:espresso-contrib:3.0.2') {
+    androidTestImplementation('com.android.support.test.espresso:espresso-contrib:3.0.2') {
         exclude module: 'support-annotations'
         exclude group: 'com.android.support'
         exclude module: 'recyclerview-v7'
     }
-    androidTestImplementation ('com.android.support.test.espresso:espresso-idling-resource:3.0.2') {
+    androidTestImplementation('com.android.support.test.espresso:espresso-idling-resource:3.0.2') {
         exclude module: 'support-annotations'
     }
-    androidTestImplementation ('com.android.support.test.espresso:espresso-intents:3.0.2'){
+    androidTestImplementation('com.android.support.test.espresso:espresso-intents:3.0.2') {
         exclude module: 'support-annotations'
     }
     debugImplementation 'com.android.support.test.espresso.idling:idling-concurrent:3.0.2'
-    debugImplementation ('com.jakewharton.espresso:okhttp3-idling-resource:1.0.0') {
+    debugImplementation('com.jakewharton.espresso:okhttp3-idling-resource:1.0.0') {
         exclude module: 'support-annotations'
     }
-    androidTestImplementation 'com.squareup.okhttp3:okhttp:'+ rootProject.okhttpVersion
+    androidTestImplementation 'com.squareup.okhttp3:okhttp:' + rootProject.okhttpVersion
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
+
+    testImplementation 'org.robolectric:robolectric:3.8'
+    testImplementation "org.robolectric:shadows-support-v4:3.3.2"
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
+    ])
 }
