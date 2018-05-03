@@ -1,52 +1,39 @@
 package com.cmonzon.redditapp.ui.frontpage;
 
+import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
 import com.cmonzon.redditapp.data.PreviewImage;
 import com.cmonzon.redditapp.data.PreviewSource;
+import com.cmonzon.redditapp.data.RedditPost;
 import com.cmonzon.redditapp.data.RedditPostsDataSource;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.reactivex.Scheduler;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.Single;
 
 /**
  * @author cmonzon
  */
-public class FrontPagePresenter implements FrontPageContract.Presenter {
-
-    @NonNull
-    private FrontPageContract.View view;
+public class FrontPageViewModel extends ViewModel {
 
     @NonNull
     private RedditPostsDataSource repository;
 
-    @NonNull
-    private CompositeDisposable composite;
-
-    private Scheduler uiScheduler;
-
-    public FrontPagePresenter(@NonNull FrontPageContract.View view, @NonNull RedditPostsDataSource repository, @NonNull Scheduler uiScheduler) {
-        this.view = view;
+    public FrontPageViewModel(@NonNull RedditPostsDataSource repository) {
         this.repository = repository;
-        this.uiScheduler = uiScheduler;
-        composite = new CompositeDisposable();
-        view.setPresenter(this);
     }
 
-
-    @Override
-    public void loadFrontPage(boolean forceUpdate) {
+    public Single<List<RedditPost>> getRedditPost(boolean forceUpdate) {
         if (forceUpdate) {
             repository.refreshFrontPage();
         }
-        composite.clear();
-        composite.add(repository.getRedditFrontPage()
+        //TODO: This could be a use case to be tested separately
+        return repository.getRedditFrontPage()
                 //create observable from Single
                 .flattenAsObservable(frontPage -> frontPage.getData().getPosts())
+
                 //filter post with no data available
                 .filter(post -> post.getData() != null)
                 //map each post and sort preview images sources
@@ -62,28 +49,8 @@ public class FrontPagePresenter implements FrontPageContract.Presenter {
                     return post;
                 })
                 //sort posts in descending order
-                .toSortedList(((o1, o2) -> o2.getData().getVotes() - o1.getData().getVotes()))
-                .observeOn(uiScheduler)
-                .doOnSubscribe(disposable -> view.showProgressIndicator(true))
-                .doFinally(() -> view.showProgressIndicator(false))
-                .subscribe(posts -> {
-                    //posts list validation
-                    if (posts.isEmpty()) {
-                        view.showNoDataFound();
-                    } else {
-                        view.showRedditPosts(new ArrayList<>(posts));
-                    }
-                }, error -> view.showLoadingError()));
+                .toSortedList(((o1, o2) -> o2.getData().getVotes() - o1.getData().getVotes()));
 
     }
 
-    @Override
-    public void start() {
-        loadFrontPage(false);
-    }
-
-    @Override
-    public void unSubscribe() {
-        composite.clear();
-    }
 }

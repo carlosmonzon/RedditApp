@@ -1,6 +1,7 @@
 package com.cmonzon.redditapp.ui.frontpage;
 
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
@@ -18,15 +19,23 @@ import android.view.ViewGroup;
 import com.cmonzon.redditapp.R;
 import com.cmonzon.redditapp.data.RedditPost;
 import com.cmonzon.redditapp.data.RedditPostData;
+import com.cmonzon.redditapp.data.RedditPostsRepository;
+import com.cmonzon.redditapp.data.remote.RedditPostsRemoteDataSource;
 import com.cmonzon.redditapp.databinding.FragmentFrontPageBinding;
+import com.cmonzon.redditapp.network.RedditService;
+import com.cmonzon.redditapp.ui.ViewModelFactory;
 import com.cmonzon.redditapp.util.ReddiPostUtils;
 
 import java.util.ArrayList;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+
 /**
  * @author cmonzon
  */
-public class FrontPageFragment extends Fragment implements FrontPageContract.View, FrontPagePostsAdapter.RedditPostOnClickListener {
+public class FrontPageFragment extends Fragment implements FrontPagePostsAdapter.RedditPostOnClickListener {
 
     private static final String LIST_STATE = "list_state";
 
@@ -34,9 +43,11 @@ public class FrontPageFragment extends Fragment implements FrontPageContract.Vie
 
     private FrontPagePostsAdapter adapter;
 
-    private FrontPageContract.Presenter presenter;
-
     private Parcelable listState;
+
+    private FrontPageViewModel viewModel;
+
+    private final CompositeDisposable disposable = new CompositeDisposable();
 
     public FrontPageFragment() {
         // Required empty public constructor
@@ -54,17 +65,40 @@ public class FrontPageFragment extends Fragment implements FrontPageContract.Vie
         binding.rvPosts.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
         adapter = new FrontPagePostsAdapter(this);
         binding.rvPosts.setAdapter(adapter);
-        binding.swipeToRefresh.setOnRefreshListener(() -> presenter.loadFrontPage(true));
+        binding.swipeToRefresh.setOnRefreshListener(() -> refreshPost(true));
         return binding.getRoot();
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        //create repository
+        RedditPostsRepository repository = RedditPostsRepository.getInstance(
+                RedditPostsRemoteDataSource.getInstance(new RedditService().getRedditApi(), Schedulers.io()));
+        ViewModelFactory viewModelFactory = new ViewModelFactory(repository);
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(FrontPageViewModel.class);
+
         if (savedInstanceState != null) {
             listState = savedInstanceState.getParcelable(LIST_STATE);
         }
-        presenter.start();
+
+        refreshPost(false);
+    }
+
+    private void refreshPost(boolean forceUpdate) {
+        disposable.clear();
+        disposable.add(viewModel.getRedditPost(forceUpdate).observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(disposable -> showProgressIndicator(true))
+                .doFinally(() -> showProgressIndicator(false))
+                .subscribe(posts -> {
+                    //posts list validation
+                    if (posts.isEmpty()) {
+                        showNoDataFound();
+                    } else {
+                        showRedditPosts(new ArrayList<>(posts));
+                    }
+                }, error -> showLoadingError()));
     }
 
     @Override
@@ -76,41 +110,34 @@ public class FrontPageFragment extends Fragment implements FrontPageContract.Vie
     @Override
     public void onPause() {
         super.onPause();
-        presenter.unSubscribe();
+        disposable.clear();
     }
 
-    //region view contract
-    @Override
-    public void showRedditPosts(ArrayList<RedditPost> posts) {
+    //region private methods
+    private void showRedditPosts(ArrayList<RedditPost> posts) {
         binding.rvPosts.setVisibility(View.VISIBLE);
         binding.tvErrorMessageDisplay.setVisibility(View.INVISIBLE);
         adapter.setRedditPosts(posts);
         binding.rvPosts.getLayoutManager().onRestoreInstanceState(listState);
     }
 
-    @Override
-    public void showProgressIndicator(boolean isVisible) {
+
+    private void showProgressIndicator(boolean isVisible) {
         binding.swipeToRefresh.setRefreshing(isVisible);
     }
 
-    @Override
-    public void showLoadingError() {
+    private void showLoadingError() {
         binding.tvErrorMessageDisplay.setVisibility(View.VISIBLE);
         binding.tvErrorMessageDisplay.setText(R.string.error_message);
         binding.rvPosts.setVisibility(View.INVISIBLE);
     }
 
-    @Override
-    public void showNoDataFound() {
+    private void showNoDataFound() {
         binding.rvPosts.setVisibility(View.INVISIBLE);
         binding.tvErrorMessageDisplay.setVisibility(View.VISIBLE);
         binding.tvErrorMessageDisplay.setText(R.string.no_data_found);
     }
 
-    @Override
-    public void setPresenter(FrontPageContract.Presenter presenter) {
-        this.presenter = presenter;
-    }
     //endregion
 
     //region FrontPagePostsAdapter callbacks

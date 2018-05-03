@@ -23,8 +23,6 @@ import static org.mockito.Mockito.verify;
 @Config(constants = BuildConfig.class)
 public class FrontPageFragmentUnitTest {
 
-    @Mock
-    FrontPageContract.Presenter presenter;
 
     FrontPageFragment frontPageFragment;
 
@@ -32,20 +30,17 @@ public class FrontPageFragmentUnitTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         frontPageFragment = FrontPageFragment.newInstance();
-        frontPageFragment.setPresenter(presenter);
     }
 
     @Test
     public void assertFragmentIsLoaded() {
         SupportFragmentTestUtil.startFragment(frontPageFragment);
         assertNotNull(frontPageFragment.getView());
-        verify(presenter).start();
     }
 
     @Test
     public void test_fragment_stop() {
         SupportFragmentTestUtil.startFragment(frontPageFragment);
         frontPageFragment.onPause();
-        verify(presenter).unSubscribe();
     }
 }
