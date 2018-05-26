@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: "kotlin-kapt"
 apply plugin: 'jacoco'
 
 jacoco {
@@ -53,7 +55,7 @@ dependencies {
     // Architecture components
     implementation "android.arch.lifecycle:runtime:$rootProject.architectureComponentsVersion"
     implementation "android.arch.lifecycle:extensions:$rootProject.architectureComponentsVersion"
-    annotationProcessor "android.arch.lifecycle:compiler:$rootProject.architectureComponentsVersion"
+    kapt "android.arch.lifecycle:compiler:$rootProject.architectureComponentsVersion"
 
     // RxJava
     implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
@@ -95,6 +97,10 @@ dependencies {
 
     testImplementation 'org.robolectric:robolectric:3.8'
     testImplementation "org.robolectric:shadows-support-v4:3.3.2"
+
+    //Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    kapt "androidx.databinding:databinding-compiler:3.2.0-alpha15"
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
@@ -113,4 +119,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'crea
     executionData = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
     ])
+}
+repositories {
+    mavenCentral()
 }

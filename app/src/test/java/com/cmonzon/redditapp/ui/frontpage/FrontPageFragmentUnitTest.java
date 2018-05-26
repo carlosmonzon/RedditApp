@@ -29,7 +29,7 @@ public class FrontPageFragmentUnitTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        frontPageFragment = FrontPageFragment.newInstance();
+        frontPageFragment = FrontPageFragment.Companion.newInstance();
     }
 
     @Test
